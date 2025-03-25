@@ -10,7 +10,8 @@ N0_counts = np.array(mca_N0.DATA)
 N0_live_time = mca_N0.get_live_time() 
 N0_count_rate = N0_counts/N0_live_time
 energies =  np.load("energie_semaine_1.npy")
-t_mils = np.array([10,20,30,40,50,60,70])
+#t_mils = np.array([10,20,30,40,50,60,70])
+t_mils = np.array([1,2,3,4,5])
 mils_to_cm = 0.00254 #cm/mils
 t_cm = t_mils*mils_to_cm
 ##### TAU ######
@@ -25,13 +26,13 @@ def tau_Al(t, mu):
     return np.e**(-mu*t)
 
 # Define threshold (e.g., 5% of max counts)
-THRESHOLD_PERCENT = 5  # Adjust this value as needed
+THRESHOLD_PERCENT = 1  # Adjust this value as needed
 
 NsurN0 = []
 valid_energies = []  # To store energy ranges used
 
 for epaisseur in t_mils:
-    mca = MCA(f"semaine_1\Al_{epaisseur}mils_20kV_25uA.mca")
+    mca = MCA(f"semaine_1\Mo_{epaisseur}mils_20kV_25uA.mca")
     counts = np.array(mca.DATA)
     live_time = mca.get_live_time()
     dead_time = mca.get_dead_time()

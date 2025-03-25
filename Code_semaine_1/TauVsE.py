@@ -92,7 +92,7 @@ plt.plot(valid_energies[valid_points], tau_exp[valid_points],
 
 # Highlight Aluminum K-edge at 1.56 keV
 plt.axvline(1.56, color='purple', linestyle=':', alpha=0.7, label='Al K-edge (1.56 keV)')
-
+#plt.scatter(valid_energies[valid_points], tau_exp[valid_points] )
 plt.xlabel('Energy (keV)')
 plt.ylabel('Attenuation Coefficient τ (cm⁻¹)')
 plt.title('Aluminum Attenuation Coefficient (0.5-20 keV)')
