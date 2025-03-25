@@ -31,7 +31,23 @@ class MCA:
         # Process specific sections (e.g., convert DATA to integers)
         if "DATA" in self.sections:
             self.sections["DATA"] = [int(x) for x in self.sections["DATA"] if x.isdigit()]
+    def get_live_time(self):
+        """Returns live time in seconds (actual measurement time)"""
+        if 'PMCA SPECTRUM' in self.sections:
+            meta = {line.split(' - ')[0]: line.split(' - ')[1] 
+                   for line in self.sections['PMCA SPECTRUM'] if ' - ' in line}
+            return float(meta.get('LIVE_TIME', 0))
+        return 0.0
 
+    def get_dead_time(self):
+        """Returns dead time as a percentage (0-100)"""
+        if 'PMCA SPECTRUM' in self.sections:
+            meta = {line.split(' - ')[0]: line.split(' - ')[1] 
+                   for line in self.sections['PMCA SPECTRUM'] if ' - ' in line}
+            live = float(meta.get('LIVE_TIME', 0))
+            real = float(meta.get('REAL_TIME', 0))
+            return ((real - live) / real) * 100 if real > 0 else 0.0
+        return 0.0
     def __getattr__(self, name):
         if name in self.sections:
             return self.sections[name]
