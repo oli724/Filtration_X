@@ -4,8 +4,10 @@ from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
 from MCA_parser import MCA
 
+mca_N0 = MCA(r"semaine_1\Al_50mils_20kV_25uA.mca")
+N0_counts = np.array(mca_N0.DATA)
 
-mca = MCA(r"semaine_1\Tension_50kV_5uA.mca")
+mca = MCA(r"semaine_1\Al_40mils_20kV_25uA.mca")
 counts = np.array(mca.DATA)  # Nombre de comptes par canal
 energies =  np.load("energie_semaine_1.npy")
 live_time = mca.get_live_time() 
