@@ -1,10 +1,15 @@
-
+from pathlib import Path
+import sys
+import os
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
-from ..MCA_parser import MCA
+from MCA_parser import MCA
 
 mca_N0 = MCA(r"semaine_2\N_0_20kV_25uA_2e_align.mca")
 N0_counts = np.array(mca_N0.DATA)
