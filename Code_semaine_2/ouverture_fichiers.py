@@ -7,9 +7,9 @@ from MCA_parser import MCA
 mca_N0 = MCA(r"semaine_1\Al_50mils_20kV_25uA.mca")
 N0_counts = np.array(mca_N0.DATA)
 
-mca = MCA(r"semaine_1\Tension_50kV_5uA.mca")
+mca = MCA(r"semaine_1\Al_40mils_20kV_25uA.mca")
 counts = np.array(mca.DATA)  # Nombre de comptes par canal
-energies =  np.load("energie_semaine_1.npy")
+energies =  np.load("energie_semaine_2.npy")
 live_time = mca.get_live_time() 
 dead_time = mca.get_dead_time()  
 print("deadtime: ", dead_time)
@@ -19,7 +19,7 @@ print(count_rate)
 
 
 ########## ENERGIE MAX #############
-THRESHOLD = 200  # Adjust based on noise level
+THRESHOLD = 150  # Adjust based on noise level
 # Find the last index where counts are above the threshold
 above_threshold = np.where(counts > THRESHOLD)[0]
 
@@ -34,14 +34,10 @@ else:
 def mean_energy(E, I):
     E = np.array(E)
     I = np.array(I)>THRESHOLD
-    E_moy = sum(E*I)/sum(I)
-    sigma = np.sqrt((np.sum(I*(E-E_moy)**2)))/(np.sum(I))
-    return E_moy, sigma
+    return sum(E*I)/sum(I)
 print("Energie moyenne:", mean_energy(energies, counts))
 ###### PLOT ########     
 plt.bar(energies, counts, width=np.median(np.diff(energies)), color="blue", alpha=0.5, label="Spectre")
-#plt.axhline(THRESHOLD)
-plt.axvline(50)
-plt.axvline(11.28)
+plt.axhline(THRESHOLD)
 plt.show()
 
