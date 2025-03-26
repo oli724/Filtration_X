@@ -2,12 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
+import sys
+import os
+from pathlib import Path
+
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
 from MCA_parser import MCA
 
-mca_N0 = MCA(r"semaine_1\Al_50mils_20kV_25uA.mca")
-N0_counts = np.array(mca_N0.DATA)
+#mca_N0 = MCA(r"semaine_1\Al_50mils_20kV_25uA.mca")
+#N0_counts = np.array(mca_N0.DATA)
 
-mca = MCA(r"semaine_1\Tension_50kV_5uA.mca")
+mca = MCA(r"semaine_1\Tension_20kV_5uA.mca")
 counts = np.array(mca.DATA)  # Nombre de comptes par canal
 energies =  np.load("energie_semaine_1.npy")
 live_time = mca.get_live_time() 
@@ -19,7 +26,7 @@ print(count_rate)
 
 
 ########## ENERGIE MAX #############
-THRESHOLD = 200  # Adjust based on noise level
+THRESHOLD = 100  # Adjust based on noise level
 # Find the last index where counts are above the threshold
 above_threshold = np.where(counts > THRESHOLD)[0]
 

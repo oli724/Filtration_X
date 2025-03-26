@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
+import sys
+import os
+from pathlib import Path
+
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
 from MCA_parser import MCA
 
 # === 1. Chargement des données ===

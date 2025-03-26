@@ -2,9 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy import constants
-import os
-from MCA_parser import MCA
 import sys
+import os
+from pathlib import Path
+
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
+
+from MCA_parser import MCA
+
 
 sys.stdout.reconfigure(encoding='utf-8')
 energies= np.load("energie_semaine_1.npy")

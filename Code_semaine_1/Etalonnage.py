@@ -1,6 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import sys
+import os
+from pathlib import Path
+
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
 from MCA_parser import MCA
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks

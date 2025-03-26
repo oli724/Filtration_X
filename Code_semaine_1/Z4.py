@@ -4,6 +4,11 @@ from scipy import stats
 from scipy import constants
 import sys
 import os
+from pathlib import Path
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
+
 from MCA_parser import MCA
 
 # Configuration

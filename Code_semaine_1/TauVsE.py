@@ -2,10 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
-from MCA_parser import MCA
+
 from scipy import constants
 from scipy.signal import savgol_filter
+import sys
+import os
+from pathlib import Path
 
+# Ajouter le dossier parent au chemin Python
+parent_dir = str(Path(__file__).parent.parent)
+sys.path.append(parent_dir)
+from MCA_parser import MCA
 # Load NIST data (replace with your actual NIST data loading)
 # Expected format: 2 columns [energy_keV, mu_cm2perg]
 nist_data = np.loadtxt('NIST_AL_coeff_total.csv', skiprows=2)  # Skip 2 header lines
