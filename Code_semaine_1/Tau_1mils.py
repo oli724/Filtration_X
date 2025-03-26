@@ -7,6 +7,7 @@ from MCA_parser import MCA
 import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
+energies= np.load("energie_semaine_1.npy")
 # Fonction pour calculer tau
 # Main analysis code
 def calculate_tau(N, N0, t_cm, rho, A):
@@ -20,7 +21,7 @@ def safe_print(*args, **kwargs):
     except UnicodeEncodeError:
         encoding = sys.stdout.encoding
         args = [str(arg).encode(encoding, errors='replace').decode(encoding) 
-               if isinstance(arg, str) else arg for arg in args]
+            if isinstance(arg, str) else arg for arg in args]
         print(*args, **kwargs)
 
 # Material properties
@@ -59,7 +60,7 @@ for mat, props in materials.items():
         tau_values = []
         for file in files:
             try:
-                # Extract thickness (assuming format: Material_thicknessmils_...)
+                # Extract thickness
                 parts = file.split('_')
                 t_mils = float(parts[1].replace('mils', ''))
                 t_cm = t_mils * 0.00254
@@ -70,19 +71,24 @@ for mat, props in materials.items():
                 live_time = mca.get_live_time()
                 count_rate = counts / live_time
 
-                # Calculate ratio
+                # Apply 10-18 keV energy filter
+                energy_mask = (energies >= 10) & (energies <= 17)
+                filtered_N0 = N0_count_rate[energy_mask]
+                filtered_counts = count_rate[energy_mask]
+
+                # Calculate ratio only in the 10-18 keV range
                 with np.errstate(divide='ignore', invalid='ignore'):
-                    ratio = np.where((N0_count_rate > 0) & (count_rate > 0),
-                                    count_rate / N0_count_rate,
+                    ratio = np.where((filtered_N0 > 0) & (filtered_counts > 0),
+                                    filtered_counts / filtered_N0,
                                     np.nan)
                 
                 valid_ratio = ratio[np.isfinite(ratio)]
                 if len(valid_ratio) > 0:
                     tau = calculate_tau(valid_ratio.mean(), 1, t_cm, props['rho'], props['Z'])
                     tau_values.append(tau)
-                    safe_print(f"Processed {file} - τ = {tau:.3e}")
+                    #safe_print(f"Processed {file} (10-18 keV) - τ = {tau:.3e}")
                 else:
-                    safe_print(f"Invalid ratio for {file}")
+                    safe_print(f"Invalid ratio for {file} in 10-18 keV range")
 
             except Exception as e:
                 safe_print(f"Error processing {file}: {e}")
@@ -101,43 +107,72 @@ for mat, props in materials.items():
 
 # Analysis and plotting
 if results:
-    # Prepare data for Z^4 analysis
+    # Prepare data
     Z = np.array([data['Z'] for data in results.values()])
     tau = np.array([data['tau_mean'] for data in results.values()])
     tau_err = np.array([data['tau_std'] for data in results.values()])
+    
+    # Convert to log scale (with τ scaled by 1e-24 for better visualization)
+    log_Z = np.log(Z)
+    log_tau = np.log(tau/1e-24)
+    log_tau_err = tau_err/tau  # Error propagation for log scale
 
-    # Fit τ = aZ^4
-    def z4_fit(Z, a, exp):
-        return a * Z**exp
+    # Linear fit function: ln(τ/1e-24) = a + b*ln(Z)
+    def linear_fit(log_Z, a, b):
+        return a + b*log_Z
 
     try:
-        popt, pcov = curve_fit(z4_fit, Z, tau, sigma=tau_err)
-        a_fit = popt[0]
-        Z_fit = np.linspace(min(Z), max(Z), 100)
-        tau_fit = z4_fit(Z_fit, a_fit, popt[1] )
-
-        # Plot results
-        plt.figure(figsize=(10, 6))
-        plt.errorbar(np.log(Z), np.log(tau/(1e-24)), yerr=tau_err, fmt='o', label='Experimental Data')
-        #plt.plot(Z_fit, tau_fit, 'r-', 
-                #label=f'Fit: τ = {a_fit:.2e}Z$^{popt[1]:.2e}$')
+        # Perform linear fit in log space
+        popt, pcov = curve_fit(linear_fit, log_Z, log_tau)
+                              #sigma=log_tau_err, absolute_sigma=True)
+        a_fit, b_fit = popt
+        b_err = np.sqrt(pcov[1,1])  # Uncertainty in slope
         
-        # Annotate points
-        for mat, data in results.items():
-            plt.annotate(mat, (data['Z'], data['tau_mean']), 
-                        xytext=(5,5), textcoords='offset points')
-
-        plt.xlabel('Atomic Number (Z)')
-        plt.ylabel('Attenuation Coefficient τ (cm$^{-1}$)')
-        plt.title('Photoelectric Attenuation vs Atomic Number')
+        # Generate fit line
+        Z_fit = np.linspace(min(Z), max(Z), 100)
+        log_Z_fit = np.log(Z_fit)
+        log_tau_fit = linear_fit(log_Z_fit, a_fit, b_fit)
+        
+        # Create plot
+        plt.figure(figsize=(8, 6))
+        
+        # Plot data points
+        plt.errorbar(Z, tau/1e-24, yerr=tau_err/1e-24, 
+                    fmt='o', capsize=5, label='Experimental Data')
+        
+        # Plot fit line
+        plt.plot(Z_fit, np.exp(log_tau_fit), 'r-', 
+                label=f'Fit: τ ∝ Z$^{{{b_fit:.2f}±{b_err:.2f}}}$')
+        
+        # Format as log-log plot
+        plt.xscale('log')
         plt.yscale('log')
-        plt.grid(True, which='both', alpha=0.3)
+        plt.xlabel('Atomic Number (Z)', fontsize=12)
+        plt.ylabel('τ (10$^{-24}$ cm$^{-1}$)', fontsize=12)
+        plt.title('τ vs Z (Log-Log Scale)', fontsize=14)
+        plt.grid(True, which='both', linestyle='--', alpha=0.3)
         plt.legend()
+        
+        # Print fit results
+        safe_print(f"\nFit results:")
+        safe_print(f"Slope (exponent) = {b_fit:.2f} ± {b_err:.2f}")
+        safe_print(f"Expected slope ≈4 for photoelectric dominance")
+        
         plt.tight_layout()
         plt.show()
 
     except Exception as e:
-        safe_print(f"Error in fitting: {e}")
+        safe_print(f"Fit error: {e}")
+        # Fallback plot if fit fails
+        plt.figure(figsize=(8, 6))
+        plt.scatter(Z, tau/1e-24)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlabel('Z')
+        plt.ylabel('τ (10$^{-24}$ cm$^{-1}$)')
+        plt.title('Data (Fit Failed)')
+        plt.show()
+        
 
     # Print results
     safe_print("\nFinal Results:")

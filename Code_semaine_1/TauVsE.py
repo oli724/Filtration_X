@@ -33,7 +33,7 @@ N0_count_rate = N0_counts / N0_live_time
 energies = np.load("energie_semaine_1.npy")
 
 # Filter your experimental data to 0.5-20 keV
-exp_mask = (energies >= 1.5) & (energies <=18)
+exp_mask = (energies >= 1.6) & (energies <=18)
 valid_energies = energies[exp_mask]
 valid_N0_rate = N0_count_rate[exp_mask]
 
@@ -81,24 +81,27 @@ else:
 plt.figure(figsize=(12, 6))
 
 # Plot NIST reference
-plt.plot(nist_energy_keV, nist_tau, 'k-', lw=2, label='NIST Reference')
+plt.plot(nist_energy_keV, nist_tau, 'k-', lw=2, label='Données du NIST')
 
 # Plot experimental data
 valid_points = ~np.isnan(tau_exp)
 plt.plot(valid_energies[valid_points], tau_exp[valid_points], 
-         'bo', ms=4, alpha=0.5, label='Experimental Points')
+         'bo', ms=4, alpha=0.5, label='$\\tau$ expérimental')
 #plt.plot(valid_energies[valid_points], tau_smoothed, 
          #'r-', lw=2, label='Experimental Smoothed')
 
 # Highlight Aluminum K-edge at 1.56 keV
 plt.axvline(1.56, color='purple', linestyle=':', alpha=0.7, label='Al K-edge (1.56 keV)')
 #plt.scatter(valid_energies[valid_points], tau_exp[valid_points] )
-plt.xlabel('Energy (keV)')
-plt.ylabel('Attenuation Coefficient τ (cm⁻¹)')
-plt.title('Aluminum Attenuation Coefficient (0.5-20 keV)')
+plt.xlabel('Énergie (keV)',fontsize=30)
+plt.ylabel("Coefficient d'atténuation  τ (cm⁻¹)",fontsize=30)
+#plt.title('Aluminum Attenuation Coefficient (0.5-20 keV)')
 plt.yscale('log')
 plt.grid(True, which='both', alpha=0.3)
-plt.legend()
+plt.tick_params(axis='both', which='major', labelsize=20)  # Taille des nombres sur les axes
+plt.tick_params(axis='both', which='minor', labelsize=20) 
+plt.tight_layout()
+plt.legend(fontsize=30)
 
 
 
