@@ -7,7 +7,7 @@ import os
 from MCA_parser import MCA
 
 # Configuration
-TARGET_ENERGY = 8.39  # keV
+TARGET_ENERGY = 10  # keV
 ENERGY_TOLERANCE = 0.5  # ±0.5 keV window
 DATA_DIR = "semaine_1"
 REF_FILE = os.path.join(DATA_DIR, "Courant_20kV_25uA.mca")
