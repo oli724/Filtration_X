@@ -39,7 +39,7 @@ NsurN0 = []
 valid_energies = []  
 energy_min = 10  # keV
 energy_max = 17.0  # keV
-
+NsurN0_std = []
 for epaisseur in t_mils:
     mca = MCA(f"semaine_1\Cu_{epaisseur}mils_20kV_25uA.mca")
     counts = np.array(mca.DATA)
@@ -75,6 +75,7 @@ for epaisseur in t_mils:
     valid_ratio = ratio[np.isfinite(ratio)]
     mean_ratio = np.mean(valid_ratio) if len(valid_ratio) > 0 else np.nan
     NsurN0.append(mean_ratio)
+    NsurN0_std.append(np.std(valid_ratio)/np.sqrt(np.mean(valid_count_rate)))
     
 # Convert to numpy arrays
 NsurN0 = np.array(NsurN0)
@@ -85,22 +86,26 @@ print(mu(NsurN0, t_cm))
 # Perform the fit
 params, cov = curve_fit(tau_Al, t_cm, NsurN0)
 mu_fit = params[0]
+err = np.sqrt(np.diag(cov))[0]
 print(f"Fitted attenuation coefficient: {mu_fit:.4f} cm-1")
 
 # Generate fit curve
-fit_energie = np.linspace(0, 70*mils_to_cm, 500)
+fit_energie = np.linspace(0, 5*mils_to_cm, 500)
 fit_tau_Al = tau_Al(fit_energie, mu_fit)
 
 # Plot results
 plt.figure(figsize=(10, 6))
-plt.scatter(t_cm, NsurN0, label='Experimental Data')
+plt.errorbar(t_cm, NsurN0, yerr=NsurN0_std,fmt='o', capsize=5, label='Données expérimentales')
 plt.plot(fit_energie, fit_tau_Al, 'r-', 
-         label=f'Fit: μ = {mu_fit:.2f} cm⁻¹')
-plt.xlabel('Aluminum Thickness (cm)')
-plt.ylabel('N/N₀')
-plt.title(f'X-ray Attenuation through Aluminum (Threshold: {THRESHOLD_PERCENT}% of max)')
-plt.legend()
-plt.grid(True)
+         label=f'Ajustement (Beer-Lambert): μ = [{mu_fit:.2f} $\pm$ {err:.2f}] cm⁻¹')
+plt.xlabel('Épaisseur du filtre t (cm)', fontsize = 30)
+plt.ylabel('Ratio N/N₀ moyen',fontsize = 30)
+#plt.title(f'X-ray Attenuation through Aluminum (Threshold: {THRESHOLD_PERCENT}% of max)')
+plt.legend(fontsize =20)
+plt.tick_params(axis='both', which='major', labelsize=20)  # Taille des nombres sur les axes
+plt.tick_params(axis='both', which='minor', labelsize=20) 
+plt.grid(True, which='both', linestyle='--', alpha=0.3)
+plt.legend(fontsize = 20, loc="upper right")
 plt.show()
 
 # Print energy ranges used
