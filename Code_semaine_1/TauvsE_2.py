@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
-
 from scipy import constants
 from scipy.signal import savgol_filter
 import sys
@@ -29,7 +28,7 @@ nist_mu = nist_mu[valid_mask]
 assert len(nist_energy_keV) == len(nist_mu), "NIST data dimension mismatch"
 
 # Convert to linear attenuation coefficient (cm⁻¹)
-rho_Al = 2.7 # g/cm³ density of aluminum
+rho_Al = 2.7  # g/cm³ density of aluminum
 nist_tau = nist_mu * rho_Al
 
 # Load your experimental data
@@ -46,8 +45,7 @@ valid_N0_rate = N0_count_rate[exp_mask]
 
 # Thickness parameters
 t_mils = np.array([10, 20, 30, 40, 50, 60, 70])
-#t_mils = np.array([1,2,3,4,5])
-#t_mils = np.array([10,20])
+t_mils = np.array([10])
 mils_to_cm = 0.00254
 t_cm = t_mils * mils_to_cm
 
@@ -57,28 +55,27 @@ tau_exp = np.full(n_energies, np.nan)
 n_valid = np.zeros(n_energies)
 
 for i, energy in enumerate(valid_energies):
-    ratios = []
-    valid_t = []
+    mu_values = []  # Store computed mu for each thickness at this energy
     
     for thickness_cm in t_cm:
         epaisseur = int(round(thickness_cm / mils_to_cm))
-        mca = MCA(f"semaine_1\Al_{epaisseur}mils_20kV_25uA.mca")
+        mca = MCA(f"semaine_1/Al_{epaisseur}mils_20kV_25uA.mca")
         counts = np.array(mca.DATA)[exp_mask]
         live_time = mca.get_live_time()
         count_rate = counts / live_time
         
-        if (valid_N0_rate[i] > 0) and (count_rate[i] > 0):
-            ratios.append(count_rate[i] / valid_N0_rate[i])
-            valid_t.append(thickness_cm)
+        N = count_rate[i]          # Transmitted counts at energy
+        N0 = valid_N0_rate[i]      # Incident counts (no absorber)
+        
+        # Only compute μ if N and N0 are valid
+        if (N0 > 0) and (N > 0):
+            mu = - (1 / thickness_cm) * np.log(N / N0)
+            mu_values.append(mu)
     
-    if len(ratios) >= 3:
-        try:
-            params, _ = curve_fit(lambda t, mu: np.exp(-mu * t), valid_t, ratios)
-            tau_exp[i] = params[0]
-            n_valid[i] = len(ratios)
-        except RuntimeError:
-            continue
-
+    # Only proceed if we have enough data points
+    if len(mu_values) >= 0:
+        tau_exp[i] = np.mean(mu_values)  # Average μ over thicknesses
+        n_valid[i] = len(mu_values)  
 # Smooth experimental results
 window_size = min(51, len(tau_exp[~np.isnan(tau_exp)])//2*2+1)
 if window_size > 3:
@@ -100,7 +97,7 @@ plt.plot(valid_energies[valid_points], tau_exp[valid_points],
          #'r-', lw=2, label='Experimental Smoothed')
 
 # Highlight Aluminum K-edge at 1.56 keV
-#plt.axvline(1.56, color='purple', linestyle=':', alpha=0.7, label='Al K-edge (1.56 keV)')
+plt.axvline(1.56, color='purple', linestyle=':', alpha=0.7, label='Al K-edge (1.56 keV)')
 #plt.scatter(valid_energies[valid_points], tau_exp[valid_points] )
 plt.xlabel('Énergie (keV)',fontsize=30)
 plt.ylabel("Coefficient d'atténuation  $\mu$ (cm⁻¹)\n (échelle logarithmique)",fontsize=30)
@@ -109,7 +106,7 @@ plt.yscale('log')
 plt.grid(True, which='both', alpha=0.3)
 plt.tick_params(axis='both', which='major', labelsize=20)  # Taille des nombres sur les axes
 plt.tick_params(axis='both', which='minor', labelsize=20) 
-
+plt.tight_layout()
 plt.legend(fontsize=30)
 
 
