@@ -22,8 +22,8 @@ plt.rcParams.update({
 })
 
 # Chemin du fichier MCA (à adapter)
-mca_file = r"Fluo\Fluo_clé_00101_30kv_200uA.mca"
-alloy_name = "clé_00101"
+mca_file = r"Fluo\Fluo_alliage_6_30kv_200uA.mca"
+alloy_name = "Alliage_6"
 
 # Création du dossier de résultats
 results_dir = f"Results_fluo\Results_{alloy_name}"
@@ -38,9 +38,9 @@ energies = np.load("energie_fluo.npy")
 # Détection des pics (paramètres ajustables)
 peaks, properties = find_peaks(counts, 
                              height=0.1*max(counts),
-                             prominence=0.1*max(counts),
+                             prominence=0.01*max(counts),
                              distance=15,
-                             width=3)
+                             width=5)
 
 # Fonction gaussienne pour l'ajustement
 def gaussian(x, A, mu, sigma):
@@ -80,8 +80,12 @@ for i, (peak, color) in enumerate(zip(peaks, colors)):
         
         # Tracé du fit
         x_plot = np.linspace(x_fit.min(), x_fit.max(), 100)
-        ax.plot(x_plot, gaussian(x_plot, *popt), '-', color=color, linewidth=2)
-        ax.scatter(popt[1], gaussian(popt[1], *popt), color=color, s=80, zorder=5)
+        ax.plot(x_plot, gaussian(x_plot, *popt), '-', color='r', linewidth=2)
+        if i == 0:
+            ax.scatter(popt[1], gaussian(popt[1], *popt), color='r', s=80, zorder=5, label = 'Pics')
+        else:
+            ax.scatter(popt[1], gaussian(popt[1], *popt), color='r', s=80, zorder=5)
+
         
         # Annotation
         ax.annotate(f'{popt[1]:.1f} keV', 
@@ -96,7 +100,7 @@ for i, (peak, color) in enumerate(zip(peaks, colors)):
 # Finalisation du graphique
 ax.set_xlabel('Énergie (keV)')
 ax.set_ylabel('Nombre de comptes')
-ax.set_title(f"Spectre XRF - {alloy_name}")
+# ax.set_title(f"Spectre XRF - {alloy_name}")
 ax.grid(True, linestyle='--', alpha=0.3)
 ax.legend()
 ax.set_xlim(left=0, right=1.8*energies[peaks[-1]])
