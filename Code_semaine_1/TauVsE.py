@@ -15,9 +15,9 @@ sys.path.append(parent_dir)
 from MCA_parser import MCA
 # Load NIST data (replace with your actual NIST data loading)
 # Expected format: 2 columns [energy_keV, mu_cm2perg]
-nist_data = np.loadtxt('NIST_AL_coeff_total.csv', skiprows=2)  # Skip 2 header lines
+nist_data = np.loadtxt('NIST_CU_coeff_total.csv', skiprows=2)  # Skip 2 header lines
 nist_energy_MeV = nist_data[:, 0]  # 1st column: Energy in MeV
-nist_mu = nist_data[:, 1]          # 2nd column: μ/ρ in cm²/g
+nist_mu = nist_data[:, 2]          # 2nd column: μ/ρ in cm²/g
 
 # Convert MeV to keV and filter to 0.5-20 keV range
 nist_energy_keV = nist_energy_MeV * 1000  
@@ -29,7 +29,7 @@ nist_mu = nist_mu[valid_mask]
 assert len(nist_energy_keV) == len(nist_mu), "NIST data dimension mismatch"
 
 # Convert to linear attenuation coefficient (cm⁻¹)
-rho_Al = 2.7 # g/cm³ density of aluminum
+rho_Al = 8.96 # g/cm³ density of aluminum
 nist_tau = nist_mu * rho_Al
 
 # Load your experimental data
@@ -45,8 +45,8 @@ valid_energies = energies[exp_mask]
 valid_N0_rate = N0_count_rate[exp_mask]
 
 # Thickness parameters
-t_mils = np.array([10, 20, 30, 40, 50, 60, 70])
-#t_mils = np.array([1,2,3,4,5])
+#t_mils = np.array([10, 20, 30, 40, 50, 60, 70])
+t_mils = np.array([1,2,3,4,5])
 #t_mils = np.array([10,20])
 mils_to_cm = 0.00254
 t_cm = t_mils * mils_to_cm
@@ -62,7 +62,7 @@ for i, energy in enumerate(valid_energies):
     
     for thickness_cm in t_cm:
         epaisseur = int(round(thickness_cm / mils_to_cm))
-        mca = MCA(f"semaine_1\Al_{epaisseur}mils_20kV_25uA.mca")
+        mca = MCA(f"semaine_1\Cu_{epaisseur}mils_20kV_25uA.mca")
         counts = np.array(mca.DATA)[exp_mask]
         live_time = mca.get_live_time()
         count_rate = counts / live_time
