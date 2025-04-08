@@ -33,7 +33,7 @@ def safe_print(*args, **kwargs):
 
 # Material properties
 materials = {
-    #'Cu': {'Z': 29, 'rho': 8.96, 'pattern': 'Cu'},
+    'Cu': {'Z': 29, 'rho': 8.96, 'pattern': 'Cu'},
     'Ag': {'Z': 47, 'rho': 10.49, 'pattern': 'Ag'},
     'Mo': {'Z': 42, 'rho': 10.28, 'pattern': 'Mo'},
     'W': {'Z': 74, 'rho': 19.25, 'pattern': 'W'},

@@ -143,7 +143,6 @@ if results:
         # NIST reference data (must match Z order from materials dictionary)
         nist_Z = np.array([13, 29, 42, 47, 74])
         nist_tau = np.array([3.36707058e-22, 2.84905662e-21, 4.30187553e-21, 1.16675533e-20, 2.43422759e-20])/1e-24
-        
         # Create plot
         plt.figure(figsize=(12, 8))
 
