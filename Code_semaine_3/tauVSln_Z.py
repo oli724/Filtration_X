@@ -11,7 +11,7 @@ materials = ['Al', 'Cu', 'Mo', 'Ag', 'W']
 tau_results = []
 
 for mat in materials:
-    data = np.load(data_folder / f"{mat}_tau_data.npz")
+    data = np.load(data_folder / f"{mat}_tau_data_2.npz")
     tau_results.append({
         'material': data['material'].item(),
         'Z': data['Z'].item(),

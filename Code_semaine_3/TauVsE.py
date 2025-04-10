@@ -21,7 +21,7 @@ nist_mu = nist_data[:, 2]          # 2nd column: μ/ρ in cm²/g
 
 # Convert MeV to keV and filter to 0.5-20 keV range
 nist_energy_keV = nist_energy_MeV * 1000  
-valid_mask = (nist_energy_keV >= 0.5) & (nist_energy_keV <= 20)
+valid_mask = (nist_energy_keV >= 2.5) & (nist_energy_keV <= 18)
 nist_energy_keV = nist_energy_keV[valid_mask]
 nist_mu = nist_mu[valid_mask]
 
@@ -33,16 +33,16 @@ rho_Al = 8.96 # g/cm³ density of aluminum
 nist_tau = nist_mu * rho_Al
 
 # Load your experimental data
-#mca_N0 = MCA(r"semaine_1\Courant_20kV_25uA.mca")
-mca_N0 = MCA(r"semaine_3\N_0_25kV_25uA_SiPin.mca")
+mca_N0 = MCA(r"semaine_1\Courant_20kV_25uA.mca")
+#mca_N0 = MCA(r"semaine_3\N_0_25kV_25uA_SiPin.mca")
 N0_counts = np.array(mca_N0.DATA)
 N0_live_time = mca_N0.get_live_time() 
 N0_count_rate = N0_counts / N0_live_time
-#energies = np.load("energie_semaine_1.npy")
-energies = np.load("energie_semaine_3.npy")
+energies = np.load("energie_semaine_1.npy")
+#energies = np.load("energie_semaine_3.npy")
 
 # Filter your experimental data to 0.5-20 keV
-exp_mask = (energies >= 1.6) & (energies <=18)
+exp_mask = (energies >= 2) & (energies <=18)
 valid_energies = energies[exp_mask]
 valid_N0_rate = N0_count_rate[exp_mask]
 
@@ -64,7 +64,7 @@ for i, energy in enumerate(valid_energies):
     
     for thickness_cm in t_cm:
         epaisseur = int(round(thickness_cm / mils_to_cm))
-        mca = MCA(f"semaine_3\Cu_{epaisseur}mils_25kV_25uA.mca")
+        mca = MCA(f"semaine_1\Cu_{epaisseur}mils_20kV_25uA.mca")
         counts = np.array(mca.DATA)[exp_mask]
         live_time = mca.get_live_time()
         count_rate = counts / live_time
@@ -92,7 +92,8 @@ else:
 plt.figure(figsize=(12, 6))
 
 # Plot NIST reference
-plt.plot(nist_energy_keV, nist_tau, 'k-', lw=2, label='Données du NIST')
+plt.scatter(nist_energy_keV, nist_tau, label='Données du NIST', s=200,color="red")
+plt.plot(nist_energy_keV, nist_tau)
 
 # Plot experimental data
 valid_points = ~np.isnan(tau_exp)
@@ -107,14 +108,14 @@ plt.plot(valid_energies[valid_points], tau_exp[valid_points],
 plt.xlabel('Énergie (keV)',fontsize=30)
 plt.ylabel("Coefficient d'atténuation  $\mu$ (cm⁻¹)\n (échelle logarithmique)",fontsize=30)
 #plt.title('Aluminum Attenuation Coefficient (0.5-20 keV)')
-plt.yscale('log')
+#plt.yscale('log')
 plt.grid(True, which='both', alpha=0.3)
 plt.tick_params(axis='both', which='major', labelsize=20)  # Taille des nombres sur les axes
 plt.tick_params(axis='both', which='minor', labelsize=20) 
 
 plt.legend(fontsize=30)
 
-
+print(nist_energy_keV)
 
 plt.tight_layout()
 plt.show()

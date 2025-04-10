@@ -22,8 +22,8 @@ t_mils = np.array([1,2,3,4,5])
 mils_to_cm = 0.00254 #cm/mils
 t_cm = t_mils*mils_to_cm
 ##### TAU ######
-A_Al = 13
-rho_Al = 2.7
+A_Al = 63.546
+rho_Al = 8.96
 def tau(t,N,N_0= N0_counts,rho = rho_Al,A = A_Al):
     N_A = constants.N_A
     
@@ -85,6 +85,7 @@ t_cm = np.array(t_mils) * mils_to_cm
 def mu(NsurN_0, t):
     return -(1/t)*np.log(NsurN_0)
 print(mu(NsurN0, t_cm))
+print(np.mean(mu(NsurN0, t_cm)))
 # Perform the fit
 params, cov = curve_fit(tau_Al, t_cm, NsurN0)
 mu_fit = params[0]

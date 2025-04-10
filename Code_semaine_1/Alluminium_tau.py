@@ -20,11 +20,23 @@ energies =  np.load("energie_semaine_1.npy")
 #t_mils = np.array([10,20,30,40,50,60,70])
 t_mils = np.array([1,2,3,4,5])
 mils_to_cm = 0.00254 #cm/mils
-t_cm = t_mils*mils_to_cm
+
 ##### TAU ######
-A_Al = 13
-rho_Al = 2.7
-def tau(t,N,N_0= N0_counts,rho = rho_Al,A = A_Al):
+
+materials = {
+    'Al': {'Z': 13, 'A': 26.982, 'rho': 2.7, 'pattern': 'Al'},
+    'Cu': {'Z': 29, 'A': 63.546, 'rho': 8.96, 'pattern': 'Cu'},
+    'Mo': {'Z': 42, 'A': 95.95, 'rho': 10.28, 'pattern': 'Mo'},
+    'Ag': {'Z': 47, 'A': 107.868, 'rho': 10.49, 'pattern': 'Ag'},
+    'W': {'Z': 74, 'A': 183.84, 'rho': 19.25, 'pattern': 'W'}
+}
+nist_mu = [  21.4785,  663.488,   293.3912,  419.3902, 2673.825 ]
+exp_mu = [ 23.1038, 703.57, 283.2843]
+exp_err = [ 2.5257, 73.76,21.9027]
+material = 'Mo'
+A = materials[material]['A']
+rho = materials[material]['rho']
+def tau(t,N,N_0= N0_counts,rho = rho,A = A):
     N_A = constants.N_A
     
     return (-np.ln(N/N0)/(rho*t))*(A/N_A) - 0.20*(A/N_A)
@@ -37,11 +49,11 @@ THRESHOLD_PERCENT = 0  # Adjust this value as needed
 
 NsurN0 = []
 valid_energies = []  
-energy_min = 10  # keV
-energy_max = 17.0  # keV
+energy_min = 14.95  # keV
+energy_max = 15.05  # keV
 NsurN0_std = []
 for epaisseur in t_mils:
-    mca = MCA(f"semaine_1\Cu_{epaisseur}mils_20kV_25uA.mca")
+    mca = MCA(f"semaine_1\{material}_{epaisseur}mils_20kV_25uA.mca")
     counts = np.array(mca.DATA)
     live_time = mca.get_live_time()
     dead_time = mca.get_dead_time()
@@ -58,7 +70,6 @@ for epaisseur in t_mils:
     valid_count_rate = count_rate[combined_mask]
     valid_N0_rate = N0_count_rate[combined_mask]
     valid_energy = energies[combined_mask]  # Pour vérification
-    
     # Calcul du ratio N/N0 (en évitant les divisions par zéro)
     with np.errstate(divide='ignore', invalid='ignore'):
         ratio = np.where((valid_N0_rate > 0) & (valid_count_rate > 0),
@@ -75,7 +86,8 @@ for epaisseur in t_mils:
     valid_ratio = ratio[np.isfinite(ratio)]
     mean_ratio = np.mean(valid_ratio) if len(valid_ratio) > 0 else np.nan
     NsurN0.append(mean_ratio)
-    NsurN0_std.append(np.std(valid_ratio)/np.sqrt(np.mean(valid_count_rate)))
+    #NsurN0_std.append(np.std(valid_ratio)/np.sqrt(np.mean(valid_count_rate)))
+    NsurN0_std.append(mean_ratio*np.sqrt(1/np.mean(valid_count_rate) + 1/np.mean(valid_N0_rate)))
     
 # Convert to numpy arrays
 NsurN0 = np.array(NsurN0)
@@ -84,13 +96,13 @@ def mu(NsurN_0, t):
     return -(1/t)*np.log(NsurN_0)
 print(mu(NsurN0, t_cm))
 # Perform the fit
-params, cov = curve_fit(tau_Al, t_cm, NsurN0)
+params, cov = curve_fit(tau_Al, t_cm, NsurN0, sigma = NsurN0_std, absolute_sigma=True)
 mu_fit = params[0]
 err = np.sqrt(np.diag(cov))[0]
-print(f"Fitted attenuation coefficient: {mu_fit:.4f} cm-1")
+print(f"Fitted attenuation coefficient: {mu_fit:.4f} cm-1 $\pm$ {err:.4f}")
 
 # Generate fit curve
-fit_energie = np.linspace(0, 5*mils_to_cm, 500)
+fit_energie = np.linspace(0, t_mils[-1]*mils_to_cm, 500)
 fit_tau_Al = tau_Al(fit_energie, mu_fit)
 
 # Plot results
@@ -113,3 +125,4 @@ print("\nEnergy ranges used for each thickness:")
 for i, (e_min, e_max) in enumerate(valid_energies):
     print(f"{t_mils[i]} mils: {e_min:.2f}-{e_max:.2f} keV")
 
+print("couche de demi atténuation")

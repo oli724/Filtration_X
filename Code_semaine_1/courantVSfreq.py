@@ -8,6 +8,7 @@ courant = [5, 10, 15, 20, 25]
 tension = [10, 20, 30, 40, 50]
 freq_courant = [12413, 24059, 34923, 45371, 55483]
 freq_tension = [394, 12408, 41592, 82490, 118057]
+error = [9,16,21,39,42]
 
 # Linear fit function
 def lineaire(x, a):
@@ -30,7 +31,8 @@ lin_fit = lineaire(fit_x, a_fit)
 plt.figure(figsize=(12, 8))
 
 # Plot data and fit
-plt.scatter(courant, freq_courant, label="Données expérimentales", s=100)
+plt.errorbar(courant, freq_courant,yerr = error,fmt='o', markersize=8,
+                capsize=5, label="Données expérimentales")
 plt.plot(fit_x, lin_fit, 'r-', 
          label=f"Ajustement linéaire: ({a_fit:.0f} ± {std_err:.0f}) compte/(s·μA) × courant\n"
       f'R² = {r_squared:.4f}',
